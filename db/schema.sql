@@ -42,3 +42,22 @@ CREATE TABLE receipt_items (
     PRIMARY KEY (receipt_id, product_id)
 );
 
+/*Payments table to store payment details, including the amount, payment type, and
+ specific fields for card and cash payments. The payment_method enum is used to 
+ differentiate between payment types*/
+ 
+CREATE TYPE payment_method AS ENUM ('CASH', 'CARD');
+
+CREATE TABLE payments (
+    id SERIAL PRIMARY KEY,
+    receipt_id INT UNIQUE REFERENCES receipts(id),
+    amount DECIMAL(10, 2) NOT NULL,
+    type payment_method NOT NULL,
+    
+    -- Card Specific Fields (CardPayment.h)
+    card_last4 CHAR(4), 
+    card_type VARCHAR(20),
+    
+    -- Cash Specific Fields (CashPayment.h)
+    change_due DECIMAL(10, 2) 
+);
