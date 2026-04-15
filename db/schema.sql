@@ -1,3 +1,10 @@
+/*-------------------------------------------------------------------------------------------------------*/
+-- Database Schema for OOP Final Project: POS System
+-- This schema defines the structure of the database, including tables for users, products, 
+-- receipts, receipt items, and payments.
+-- It also includes sample data insertion for testing purposes.
+/*-------------------------------------------------------------------------------------------------------*/
+
 
 /*Users table to store user information, including username, 
 password hash, role, full name, email, and active status.*/
