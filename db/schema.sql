@@ -24,12 +24,21 @@ CREATE TABLE products (
 /*Receipts table to store transaction details, including timestamps, promotional codes, 
 tax rates, and discount percentages for each purchase.*/
 CREATE TABLE receipts (
-    id SERIAL PRIMARY KEY, -- From Receipt::id
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- From Receipt::timestamp
-    promo_code VARCHAR(20), -- From Cart::promo_code
-    tax_rate DECIMAL(5, 4), -- From Cart::tax_rate
-    discount_percent DECIMAL(5, 4) -- From Cart::discount_percent
+    id SERIAL PRIMARY KEY,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    promo_code VARCHAR(20),
+    tax_rate DECIMAL(5, 4),
+    discount_percent DECIMAL(5, 4)
 );
 
+/*Receipt_items table to link products to receipts, capturing the quantity 
+purchased and the price at the time of sale.*/
 
+CREATE TABLE receipt_items (
+    receipt_id INT REFERENCES receipts(id) ON DELETE CASCADE,
+    product_id INT REFERENCES products(id),
+    quantity INT NOT NULL,
+    price_at_purchase DECIMAL(10, 2),
+    PRIMARY KEY (receipt_id, product_id)
+);
 
