@@ -45,7 +45,7 @@ CREATE TABLE receipt_items (
 /*Payments table to store payment details, including the amount, payment type, and
  specific fields for card and cash payments. The payment_method enum is used to 
  differentiate between payment types*/
- 
+
 CREATE TYPE payment_method AS ENUM ('CASH', 'CARD');
 
 CREATE TABLE payments (
@@ -61,3 +61,38 @@ CREATE TABLE payments (
     -- Cash Specific Fields (CashPayment.h)
     change_due DECIMAL(10, 2) 
 );
+
+INSERT INTO users (username, password_hash, role, full_name, email, is_active) VALUES
+('admin_user', 'argon2_hash_1', 'Admin', 'Alice Johnson', 'alice@system.com', true),
+('cashier_01', 'argon2_hash_2', 'Cashier', 'Bob Smith', 'bob@system.com', true),
+('cashier_02', 'argon2_hash_3', 'Cashier', 'Charlie Davis', 'charlie@system.com', true),
+('manager_ken', 'argon2_hash_4', 'Manager', 'Ken Thompson', 'ken@system.com', true),
+('dev_tester', 'argon2_hash_5', 'Admin', 'Dana White', 'dana@system.com', false);
+
+INSERT INTO products (sku, name, category, price) VALUES
+('ELEC-001', 'Wireless Mouse', 'Electronics', 25.99),
+('ELEC-002', 'Mechanical Keyboard', 'Electronics', 89.50),
+('OFFC-010', 'Ergonomic Chair', 'Furniture', 199.00),
+('OFFC-011', 'Standing Desk', 'Furniture', 350.00),
+('SOFT-999', 'Antivirus License', 'Software', 49.99);
+
+INSERT INTO receipts (user_id, promo_code, tax_rate, discount_percent) VALUES
+(2, 'WELCOME10', 0.08, 0.10),
+(2, NULL, 0.08, 0.00),
+(3, 'SUMMER25', 0.05, 0.25),
+(3, NULL, 0.08, 0.00),
+(4, 'STAFF_DISC', 0.00, 0.50);
+
+INSERT INTO receipt_items (receipt_id, product_id, quantity, price_at_purchase) VALUES
+(1, 1, 2, 25.99),
+(1, 2, 1, 89.50),
+(2, 3, 1, 199.00),
+(3, 5, 5, 49.99),
+(4, 4, 1, 350.00);
+
+INSERT INTO payments (receipt_id, amount, type, card_last4, card_type, change_due) VALUES
+(1, 127.33, 'CARD', '4422', 'Visa', NULL),
+(2, 214.92, 'CASH', NULL, NULL, 5.08),
+(3, 196.84, 'CARD', '9012', 'Mastercard', NULL),
+(4, 378.00, 'CASH', NULL, NULL, 22.00),
+(5, 175.00, 'CARD', '1111', 'Amex', NULL);
