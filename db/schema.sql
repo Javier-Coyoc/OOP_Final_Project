@@ -5,6 +5,13 @@
 -- It also includes sample data insertion for testing purposes.
 /*-------------------------------------------------------------------------------------------------------*/
 
+DROP TABLE IF EXISTS receipt_items CASCADE;
+DROP TABLE IF EXISTS payments CASCADE;
+DROP TABLE IF EXISTS receipts CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TYPE IF EXISTS payment_method CASCADE;
+
 
 /*Users table to store user information, including username, 
 password hash, role, full name, email, and active status.*/
