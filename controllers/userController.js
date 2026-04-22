@@ -1,4 +1,4 @@
-const { User } = require("../dist/classes/User");
+const bcrypt = require('bcrypt');
 const db = require("../db/dbConnection");
 
 exports.login = async (req, res) => {
@@ -10,49 +10,71 @@ exports.login = async (req, res) => {
       [username]
     );
 
-    if (result.rows.length === 0)
-      return res.status(401).json({ error: "Username not found" });
+    if (result.rows.length === 0) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
 
-    const row  = result.rows[0];
-    const user = new User(row.id, row.username, row.password, row.role, row.full_name, row.email);
+    const user = result.rows[0];
 
-    if (!user.getIsActive())
-      return res.status(403).json({ error: "Account is disabled" });
+    if (!user.is_active) {
+      return res.status(403).json({ message: "Account is disabled" });
+    }
 
-    if (!user.checkPassword(password))
-      return res.status(401).json({ error: "Incorrect password" });
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    if (!isValidPassword) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
 
     res.json({
-      message:   `Welcome, ${user.getFullName()}!`,
-      token:     `token_${user.getId()}_${Date.now()}`,  // simple token — swap for JWT later
-      id:        user.getId(),
-      role:      user.getRole(),
-      full_name: user.getFullName(),
-      username:  user.getUsername()
+      message: `Welcome, ${user.full_name}!`,
+      token: `token_${user.id}_${Date.now()}`,
+      id: user.id,
+      role: user.role,
+      full_name: user.full_name,
+      username: user.username
     });
   } catch (err) {
     console.error(err);
-    res.status(400).json({ error: err.message || "Login failed" });
+    res.status(500).json({ message: "Login failed" });
   }
 };
 
 exports.registerUser = async (req, res) => {
-  const { username, password, role, full_name, email } = req.body;
+  const { full_name, username, email, role, password } = req.body;
+
+  // Basic validation
+  if (!full_name || !username || !email || !role || !password) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
 
   try {
-    const user = new User(null, username, password, role, full_name, email);
+    // Check if user exists
+    const userExists = await db.query(
+      "SELECT id FROM users WHERE username = $1 OR email = $2",
+      [username, email]
+    );
+    
+    if (userExists.rows.length > 0) {
+      return res.status(409).json({ message: "Username or email already exists" });
+    }
 
+    // Hash password and create user
+    const password_hash = await bcrypt.hash(password, 10);
+    
     const result = await db.query(
-      `INSERT INTO users (username, password, role, full_name, email)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id, username, role, full_name, email`,
-      [user.getUsername(), password, user.getRole(), user.getFullName(), user.getEmail()]
+      `INSERT INTO users (username, password_hash, role, full_name, email, is_active) 
+       VALUES ($1, $2, $3, $4, $5, $6) 
+       RETURNING id, username, role, full_name, email`,
+      [username, password_hash, role, full_name, email, true]
     );
 
-    res.status(201).json({ message: "User registered successfully", user: result.rows[0] });
+    res.status(201).json({ 
+      message: "User registered successfully", 
+      user: result.rows[0] 
+    });
   } catch (err) {
     console.error(err);
-    if (err.code === "23505") return res.status(400).json({ error: "Username already taken" });
-    res.status(400).json({ error: err.message || "Registration failed" });
+    res.status(500).json({ message: "Registration failed" });
   }
 };
 
@@ -64,7 +86,7 @@ exports.getUsers = async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: "Failed to retrieve users" });
   }
 };
 
@@ -74,10 +96,14 @@ exports.toggleUserStatus = async (req, res) => {
       "UPDATE users SET is_active = NOT is_active WHERE id = $1 RETURNING id, username, is_active",
       [req.params.id]
     );
-    if (result.rows.length === 0) return res.status(404).json({ error: "User not found" });
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: "Failed to update user status" });
   }
 };

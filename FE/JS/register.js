@@ -1,43 +1,40 @@
-// Connects to: POST /auth/register → authController.js
-
-const fullNameInput     = document.getElementById('full_name');
-const usernameInput     = document.getElementById('username');
-const emailInput        = document.getElementById('email');
-const roleSelect        = document.getElementById('role');
-const passwordInput     = document.getElementById('password');
-const confirmInput      = document.getElementById('confirm_password');
-const registerBtn       = document.getElementById('register-btn');
-const errorMsg          = document.getElementById('error-msg');
-
-// ── HELPERS ──────────────────────────────────────────────────────────────────
+const fullNameInput = document.getElementById('full_name');
+const usernameInput = document.getElementById('username');
+const emailInput = document.getElementById('email');
+const roleSelect = document.getElementById('role');
+const passwordInput = document.getElementById('password');
+const confirmInput = document.getElementById('confirm_password');
+const registerBtn = document.getElementById('register-btn');
+const errorMsg = document.getElementById('error-msg');
 
 function showError(msg) {
   errorMsg.textContent = msg;
   errorMsg.style.color = '#c0392b';
+  errorMsg.style.display = 'block';
 }
 
 function showSuccess(msg) {
   errorMsg.textContent = msg;
   errorMsg.style.color = '#2d7a4f';
+  errorMsg.style.display = 'block';
 }
 
 function clearError() {
   errorMsg.textContent = '';
+  errorMsg.style.display = 'none';
 }
 
 function setLoading(isLoading) {
-  registerBtn.disabled    = isLoading;
+  registerBtn.disabled = isLoading;
   registerBtn.textContent = isLoading ? 'Creating account...' : 'Create Account';
 }
 
-// ── VALIDATION ────────────────────────────────────────────────────────────────
-
 function validate() {
-  const full_name      = fullNameInput.value.trim();
-  const username       = usernameInput.value.trim();
-  const email          = emailInput.value.trim();
-  const role           = roleSelect.value;
-  const password       = passwordInput.value;
+  const full_name = fullNameInput.value.trim();
+  const username = usernameInput.value.trim();
+  const email = emailInput.value.trim();
+  const role = roleSelect.value;
+  const password = passwordInput.value;
   const confirmPassword = confirmInput.value;
 
   if (!full_name || !username || !email || !role || !password || !confirmPassword) {
@@ -50,7 +47,6 @@ function validate() {
     return null;
   }
 
-  // basic email format check
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     showError('Please enter a valid email address.');
@@ -70,8 +66,6 @@ function validate() {
   return { full_name, username, email, role, password };
 }
 
-// ── SUBMIT ────────────────────────────────────────────────────────────────────
-
 async function handleRegister() {
   clearError();
 
@@ -82,9 +76,9 @@ async function handleRegister() {
 
   try {
     const res = await fetch('/auth/register', {
-      method:  'POST',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(payload),
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json();
@@ -95,29 +89,16 @@ async function handleRegister() {
         window.location.href = 'login.html';
       }, 1500);
     } else {
-      // server-side errors e.g. username already taken
-      showError(data.message || 'Registration failed. Please try again.');
+      showError(data.message || 'Registration failed.');
     }
-
   } catch (err) {
     showError('Server error. Please try again.');
-    console.error('Register error:', err);
   } finally {
     setLoading(false);
   }
 }
 
-// ── EVENTS ────────────────────────────────────────────────────────────────────
-
 registerBtn.addEventListener('click', handleRegister);
-
-// Submit on Enter from confirm password field
 confirmInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') handleRegister();
 });
-
-// Clear error as user types
-[fullNameInput, usernameInput, emailInput, passwordInput, confirmInput].forEach(input => {
-  input.addEventListener('input', clearError);
-});
-roleSelect.addEventListener('change', clearError);
