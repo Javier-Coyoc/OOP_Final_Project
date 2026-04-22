@@ -1,109 +1,162 @@
-const bcrypt = require('bcrypt');
 const db = require("../db/dbConnection");
 
+// User login
 exports.login = async (req, res) => {
   const { username, password } = req.body;
 
+  if (!username || !password) {
+    return res.status(400).json({ 
+      success: false,
+      message: "Username and password are required" 
+    });
+  }
+
   try {
     const result = await db.query(
-      "SELECT * FROM users WHERE username = $1",
-      [username]
+      "SELECT * FROM users WHERE username = $1 AND password_hash = $2",
+      [username, password]
     );
 
     if (result.rows.length === 0) {
-      return res.status(401).json({ message: "Invalid username or password" });
+      return res.status(401).json({ 
+        success: false,
+        message: "Invalid username or password" 
+      });
     }
 
     const user = result.rows[0];
 
     if (!user.is_active) {
-      return res.status(403).json({ message: "Account is disabled" });
+      return res.status(403).json({ 
+        success: false,
+        message: "Account is disabled" 
+      });
     }
 
-    const isValidPassword = await bcrypt.compare(password, user.password_hash);
-    if (!isValidPassword) {
-      return res.status(401).json({ message: "Invalid username or password" });
-    }
+    const { password_hash, ...userWithoutPassword } = user;
 
     res.json({
+      success: true,
       message: `Welcome, ${user.full_name}!`,
       token: `token_${user.id}_${Date.now()}`,
-      id: user.id,
-      role: user.role,
-      full_name: user.full_name,
-      username: user.username
+      user: userWithoutPassword
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Login failed" });
+    console.error('Login error:', err);
+    res.status(500).json({ 
+      success: false,
+      message: "Login failed" 
+    });
   }
 };
 
+// User registration
 exports.registerUser = async (req, res) => {
   const { full_name, username, email, role, password } = req.body;
 
-  // Basic validation
   if (!full_name || !username || !email || !role || !password) {
-    return res.status(400).json({ message: "All fields are required" });
+    return res.status(400).json({ 
+      success: false,
+      message: "All fields are required" 
+    });
+  }
+
+  const validRoles = ['Admin', 'Cashier', 'Manager'];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ 
+      success: false,
+      message: "Role must be Admin, Cashier, or Manager" 
+    });
   }
 
   try {
-    // Check if user exists
     const userExists = await db.query(
       "SELECT id FROM users WHERE username = $1 OR email = $2",
       [username, email]
     );
     
     if (userExists.rows.length > 0) {
-      return res.status(409).json({ message: "Username or email already exists" });
+      return res.status(409).json({ 
+        success: false,
+        message: "Username or email already exists" 
+      });
     }
-
-    // Hash password and create user
-    const password_hash = await bcrypt.hash(password, 10);
     
     const result = await db.query(
       `INSERT INTO users (username, password_hash, role, full_name, email, is_active) 
        VALUES ($1, $2, $3, $4, $5, $6) 
-       RETURNING id, username, role, full_name, email`,
-      [username, password_hash, role, full_name, email, true]
+       RETURNING id, username, role, full_name, email, is_active, created_at`,
+      [username, password, role, full_name, email, true]
     );
 
     res.status(201).json({ 
+      success: true,
       message: "User registered successfully", 
       user: result.rows[0] 
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Registration failed" });
+    console.error('Registration error:', err);
+    res.status(500).json({ 
+      success: false,
+      message: "Registration failed" 
+    });
   }
 };
 
+// Get all users
 exports.getUsers = async (req, res) => {
   try {
     const result = await db.query(
-      "SELECT id, username, role, full_name, email, is_active FROM users ORDER BY id"
+      "SELECT id, username, role, full_name, email, is_active, created_at FROM users ORDER BY id"
     );
-    res.json(result.rows);
+    
+    res.json({ 
+      success: true,
+      users: result.rows 
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to retrieve users" });
+    console.error('Get users error:', err);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to retrieve users" 
+    });
   }
 };
 
+// Toggle user status
 exports.toggleUserStatus = async (req, res) => {
+  const userId = req.params.id;
+  
+  if (!userId || isNaN(userId)) {
+    return res.status(400).json({ 
+      success: false,
+      message: "Valid user ID is required" 
+    });
+  }
+
   try {
     const result = await db.query(
-      "UPDATE users SET is_active = NOT is_active WHERE id = $1 RETURNING id, username, is_active",
-      [req.params.id]
+      "UPDATE users SET is_active = NOT is_active WHERE id = $1 RETURNING id, username, is_active, role",
+      [userId]
     );
     
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ 
+        success: false,
+        message: "User not found" 
+      });
     }
     
-    res.json(result.rows[0]);
+    res.json({ 
+      success: true,
+      message: `User status updated`,
+      user: result.rows[0] 
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to update user status" });
+    console.error('Toggle status error:', err);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to update user status" 
+    });
   }
 };

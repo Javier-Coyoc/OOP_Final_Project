@@ -32,7 +32,7 @@ CREATE TABLE products (
     price DECIMAL(10, 2) NOT NULL
 );
 
--- Create receipts table (added user_id column)
+-- Create receipts table
 CREATE TABLE receipts (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE SET NULL,
@@ -42,7 +42,7 @@ CREATE TABLE receipts (
     discount_percent DECIMAL(5, 4)
 );
 
--- Create receipt_items table (junction table)
+-- Create receipt_items table
 CREATE TABLE receipt_items (
     receipt_id INT REFERENCES receipts(id) ON DELETE CASCADE,
     product_id INT REFERENCES products(id) ON DELETE CASCADE,
@@ -66,14 +66,15 @@ CREATE TABLE payments (
     )
 );
 
--- Insert sample data
+-- Insert sample data with PLAIN TEXT PASSWORDS (no bcrypt/argon2)
 INSERT INTO users (username, password_hash, role, full_name, email, is_active) VALUES
-('admin_user', 'argon2_hash_1', 'Admin', 'Alice Johnson', 'alice@system.com', true),
-('cashier_01', 'argon2_hash_2', 'Cashier', 'Bob Smith', 'bob@system.com', true),
-('cashier_02', 'argon2_hash_3', 'Cashier', 'Charlie Davis', 'charlie@system.com', true),
-('manager_ken', 'argon2_hash_4', 'Manager', 'Ken Thompson', 'ken@system.com', true),
-('dev_tester', 'argon2_hash_5', 'Admin', 'Dana White', 'dana@system.com', false);
+('admin_user', 'admin123', 'Admin', 'Alice Johnson', 'alice@system.com', true),
+('cashier_01', 'cashier123', 'Cashier', 'Bob Smith', 'bob@system.com', true),
+('cashier_02', 'cashier123', 'Cashier', 'Charlie Davis', 'charlie@system.com', true),
+('manager_ken', 'manager123', 'Manager', 'Ken Thompson', 'ken@system.com', true),
+('dev_tester', 'test123', 'Admin', 'Dana White', 'dana@system.com', false);
 
+-- Insert products
 INSERT INTO products (sku, name, category, price) VALUES
 ('ELEC-001', 'Wireless Mouse', 'Electronics', 25.99),
 ('ELEC-002', 'Mechanical Keyboard', 'Electronics', 89.50),
@@ -81,6 +82,7 @@ INSERT INTO products (sku, name, category, price) VALUES
 ('OFFC-011', 'Standing Desk', 'Furniture', 350.00),
 ('SOFT-999', 'Antivirus License', 'Software', 49.99);
 
+-- Insert receipts
 INSERT INTO receipts (user_id, promo_code, tax_rate, discount_percent) VALUES
 (2, 'WELCOME10', 0.08, 0.10),
 (2, NULL, 0.08, 0.00),
@@ -88,6 +90,7 @@ INSERT INTO receipts (user_id, promo_code, tax_rate, discount_percent) VALUES
 (3, NULL, 0.08, 0.00),
 (4, 'STAFF_DISC', 0.00, 0.50);
 
+-- Insert receipt items
 INSERT INTO receipt_items (receipt_id, product_id, quantity, price_at_purchase) VALUES
 (1, 1, 2, 25.99),
 (1, 2, 1, 89.50),
@@ -95,6 +98,7 @@ INSERT INTO receipt_items (receipt_id, product_id, quantity, price_at_purchase) 
 (3, 5, 5, 49.99),
 (4, 4, 1, 350.00);
 
+-- Insert payments
 INSERT INTO payments (receipt_id, amount, type, card_last4, card_type, change_due) VALUES
 (1, 127.33, 'CARD', '4422', 'Visa', NULL),
 (2, 214.92, 'CASH', NULL, NULL, 5.08),
@@ -102,13 +106,13 @@ INSERT INTO payments (receipt_id, amount, type, card_last4, card_type, change_du
 (4, 378.00, 'CASH', NULL, NULL, 22.00),
 (5, 175.00, 'CARD', '1111', 'Amex', NULL);
 
--- Optional: Create useful indexes for performance
+-- Create indexes
 CREATE INDEX idx_receipts_user_id ON receipts(user_id);
 CREATE INDEX idx_receipts_timestamp ON receipts(timestamp);
 CREATE INDEX idx_receipt_items_product_id ON receipt_items(product_id);
 CREATE INDEX idx_payments_receipt_id ON payments(receipt_id);
 
--- Optional: Verify data was inserted correctly
+-- Verify data was inserted correctly
 SELECT 'Users count: ' || COUNT(*)::TEXT FROM users
 UNION ALL
 SELECT 'Products count: ' || COUNT(*)::TEXT FROM products
@@ -118,3 +122,17 @@ UNION ALL
 SELECT 'Receipt items count: ' || COUNT(*)::TEXT FROM receipt_items
 UNION ALL
 SELECT 'Payments count: ' || COUNT(*)::TEXT FROM payments;
+
+
+-- Update all users to use plain text passwords
+UPDATE users SET password_hash = 'admin123' WHERE username = 'admin_user';
+UPDATE users SET password_hash = 'cashier123' WHERE username = 'cashier_01';
+UPDATE users SET password_hash = 'cashier123' WHERE username = 'cashier_02';
+UPDATE users SET password_hash = 'manager123' WHERE username = 'manager_ken';
+UPDATE users SET password_hash = 'test123' WHERE username = 'dev_tester';
+
+-- Verify the updates
+SELECT id, username, password_hash, role, full_name FROM users;
+
+
+SELECT * FROM users;

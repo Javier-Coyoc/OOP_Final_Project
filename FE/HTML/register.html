@@ -6,42 +6,11 @@
   <title>Register – Receipt Gen</title>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../CSS/styles.css">
-  <style>
-    /* Register-specific: two-column form grid inside split-right */
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0 24px;
-      width: 100%;
-    }
-    .form-grid .form-row.full { grid-column: 1 / -1; }
-
-    .form-row select {
-      width: 100%;
-      border: none;
-      border-bottom: 1.5px solid #e0d8cc;
-      background: transparent;
-      padding: 12px 0;
-      font-family: 'Instrument Serif', serif;
-      font-size: 18px;
-      color: #1a1410;
-      outline: none;
-      appearance: none;
-      cursor: pointer;
-      transition: border-color 0.3s;
-    }
-    .form-row select:focus { border-bottom-color: #1a1410; }
-
-    /* widen the right panel slightly for the two-col form */
-    .split-right { width: 520px; padding: 48px 60px; }
-
-    .split-right h1 { font-size: 38px; }
-  </style>
 </head>
 <body>
   <div class="split">
 
-    <!-- LEFT: dark panel, same as login -->
+    <!-- LEFT: dark panel - smaller preview -->
     <div class="split-left">
       <div class="receipt-preview">
         <div class="rp-title">RECEIPT GENERATOR</div>
@@ -55,11 +24,9 @@
       <p class="tagline">Generate · Print · Manage</p>
     </div>
 
-    <!-- RIGHT: register form -->
+    <!-- RIGHT: LARGER register form -->
     <div class="split-right">
-      <p class="logo">
-        <img src="./Assets/logo.png" alt="Receipt Gen" class="login-logo" width="200" height="100" />
-      </p>
+      <img src="../HTML/Assets/logo.png" alt="Receipt Gen" class="login-logo" />
 
       <h1>Create<br><em>account.</em></h1>
       <p class="subtitle">Set up your system access.</p>
@@ -69,17 +36,17 @@
       <div class="form-grid">
         <div class="form-row">
           <label for="full_name">Full Name</label>
-          <input id="full_name" type="text" placeholder="Jane Smith" autocomplete="name" />
+          <input id="full_name" type="text" placeholder="Jane Smith" />
         </div>
 
         <div class="form-row">
           <label for="username">Username</label>
-          <input id="username" type="text" placeholder="jane.smith" autocomplete="username" />
+          <input id="username" type="text" placeholder="jane.smith" />
         </div>
 
         <div class="form-row full">
           <label for="email">Email Address</label>
-          <input id="email" type="email" placeholder="jane@company.com" autocomplete="email" />
+          <input id="email" type="email" placeholder="jane@company.com" />
         </div>
 
         <div class="form-row">
@@ -94,12 +61,12 @@
 
         <div class="form-row">
           <label for="password">Password</label>
-          <input id="password" type="password" placeholder="••••••••" autocomplete="new-password" />
+          <input id="password" type="password" placeholder="••••••••" />
         </div>
 
         <div class="form-row full">
           <label for="confirm_password">Confirm Password</label>
-          <input id="confirm_password" type="password" placeholder="••••••••" autocomplete="new-password" />
+          <input id="confirm_password" type="password" placeholder="••••••••" />
         </div>
       </div>
 
@@ -109,6 +76,98 @@
     </div>
   </div>
 
-  <script src="../JS/register.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const registerBtn = document.getElementById('register-btn');
+      const errorMsg = document.getElementById('error-msg');
+      
+      registerBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        
+        const full_name = document.getElementById('full_name').value.trim();
+        const username = document.getElementById('username').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const role = document.getElementById('role').value;
+        const password = document.getElementById('password').value;
+        const confirm = document.getElementById('confirm_password').value;
+        
+        errorMsg.style.display = 'none';
+        
+        if (!full_name || !username || !email || !role || !password || !confirm) {
+          errorMsg.textContent = 'All fields are required';
+          errorMsg.style.display = 'block';
+          errorMsg.style.color = '#c0392b';
+          errorMsg.style.backgroundColor = '#fee';
+          errorMsg.style.padding = '12px';
+          errorMsg.style.borderRadius = '6px';
+          return;
+        }
+        
+        if (password !== confirm) {
+          errorMsg.textContent = 'Passwords do not match';
+          errorMsg.style.display = 'block';
+          errorMsg.style.color = '#c0392b';
+          errorMsg.style.backgroundColor = '#fee';
+          errorMsg.style.padding = '12px';
+          errorMsg.style.borderRadius = '6px';
+          return;
+        }
+        
+        if (password.length < 4) {
+          errorMsg.textContent = 'Password must be at least 4 characters';
+          errorMsg.style.display = 'block';
+          errorMsg.style.color = '#c0392b';
+          errorMsg.style.backgroundColor = '#fee';
+          errorMsg.style.padding = '12px';
+          errorMsg.style.borderRadius = '6px';
+          return;
+        }
+        
+        registerBtn.disabled = true;
+        registerBtn.textContent = 'Creating account...';
+        
+        try {
+          const response = await fetch('/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ full_name, username, email, role, password })
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            errorMsg.textContent = '✅ Account created successfully! Redirecting to login...';
+            errorMsg.style.display = 'block';
+            errorMsg.style.color = '#155724';
+            errorMsg.style.backgroundColor = '#d4edda';
+            errorMsg.style.padding = '12px';
+            errorMsg.style.borderRadius = '6px';
+            
+            setTimeout(() => {
+              window.location.href = 'login.html';
+            }, 1500);
+          } else {
+            errorMsg.textContent = data.message || 'Registration failed';
+            errorMsg.style.display = 'block';
+            errorMsg.style.color = '#c0392b';
+            errorMsg.style.backgroundColor = '#fee';
+            errorMsg.style.padding = '12px';
+            errorMsg.style.borderRadius = '6px';
+            registerBtn.disabled = false;
+            registerBtn.textContent = 'Create Account';
+          }
+        } catch (error) {
+          errorMsg.textContent = '❌ Cannot connect to server. Make sure backend is running on port 3000';
+          errorMsg.style.display = 'block';
+          errorMsg.style.color = '#c0392b';
+          errorMsg.style.backgroundColor = '#fee';
+          errorMsg.style.padding = '12px';
+          errorMsg.style.borderRadius = '6px';
+          registerBtn.disabled = false;
+          registerBtn.textContent = 'Create Account';
+        }
+      });
+    });
+  </script>
 </body>
 </html>

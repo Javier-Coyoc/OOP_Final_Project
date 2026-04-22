@@ -9,7 +9,6 @@ exports.createReceipt = async (req, res) => {
   const { cashier_id, items, subtotal, discount, tax, total, promo_code, payment_type, cash_tendered, card_last4, card_type } = req.body;
 
   try {
-    // Build payment object from dist classes
     let payment;
     if (payment_type === "cash") {
       payment = new CashPayment(parseFloat(cash_tendered));
@@ -20,7 +19,6 @@ exports.createReceipt = async (req, res) => {
 
     payment.processPayment();
 
-    // Save receipt to DB
     const receiptResult = await db.query(
       `INSERT INTO receipts (cashier_id, subtotal, discount, tax, total, promo_code)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
@@ -29,7 +27,6 @@ exports.createReceipt = async (req, res) => {
 
     const receipt = receiptResult.rows[0];
 
-    // Save receipt items
     for (const item of items) {
       await db.query(
         `INSERT INTO receipt_items (receipt_id, product_id, quantity, unit_price)

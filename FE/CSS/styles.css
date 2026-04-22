@@ -11,11 +11,11 @@ body {
   overflow: hidden;
 }
 
-
+/* Split layout - form gets more space */
 .split {
   display: flex;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
 }
 
 
@@ -26,21 +26,19 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px;
-  position: relative;
-  overflow: hidden;
+  padding: 20px;
 }
 
-
+/* Receipt preview */
 .receipt-preview {
-  width: 200px;
+  width: 480px;
   background: #fff;
-  padding: 20px;
-  transform: rotate(-3deg);
-  box-shadow: 20px 20px 60px rgba(0, 0, 0, 0.5);
-  font-size: 8px;
+  padding: 18px;
+  transform: rotate(-2deg);
+  box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.3);
+  font-size: 9px;
   font-family: 'IBM Plex Mono', monospace;
-  line-height: 1.8;
+  line-height: 1.6;
   color: #333;
 }
 
@@ -50,52 +48,57 @@ body {
   font-weight: 700;
   margin-bottom: 8px;
   border-bottom: 1px dashed #ccc;
-  padding-bottom: 6px;
+  padding-bottom: 4px;
 }
 
 .rp-row {
   display: flex;
   justify-content: space-between;
+  margin-bottom: 3px;
+  font-size: 9px;
 }
 
 .rp-tax {
   color: #999;
-  font-size: 7px;
+  font-size: 8px;
 }
 
 .rp-total {
   border-top: 1px dashed #ccc;
-  margin-top: 6px;
-  padding-top: 6px;
+  margin-top: 5px;
+  padding-top: 5px;
   font-weight: 700;
   display: flex;
   justify-content: space-between;
+  font-size: 10px;
 }
 
 .rp-thanks {
   text-align: center;
-  margin-top: 8px;
+  margin-top: 6px;
   font-size: 7px;
   color: #aaa;
 }
 
 .tagline {
   color: rgba(255, 255, 255, 0.4);
-  font-size: 12px;
+  font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  margin-top: 32px;
-  font-family: 'Outfit', sans-serif;
+  margin-top: 20px;
 }
 
-
+/* Right panel - LARGER form area */
 .split-right {
-  width: 480px;
+  flex: 3;
+  max-width: 700px;
+  min-width: 500px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   justify-content: center;
-  padding: 60px;
+  padding: 40px 50px;
+  background: white;
+  overflow-y: auto;
 }
 
 .logo-text {
@@ -103,8 +106,7 @@ body {
   letter-spacing: 3px;
   text-transform: uppercase;
   color: #666;
-  font-family: 'Outfit', sans-serif;
-  margin-bottom: 48px;
+  margin-bottom: 40px;
 }
 
 .split-right h1 {
@@ -113,7 +115,7 @@ body {
   font-weight: 400;
   color: #1a1410;
   line-height: 1.1;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .split-right h1 em {
@@ -123,21 +125,21 @@ body {
 .subtitle {
   color: #999;
   font-size: 14px;
-  margin-bottom: 40px;
+  margin-bottom: 35px;
 }
 
-/* ERROR MESSAGE ig*/
+/* Error message */
 .error-msg {
   width: 100%;
-  color: #c0392b;
+  margin-bottom: 20px;
   font-size: 13px;
-  margin-bottom: 12px;
-  min-height: 18px;
+  display: none;
 }
 
+/* Form rows - larger spacing */
 .form-row {
   width: 100%;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
 .form-row label {
@@ -146,7 +148,6 @@ body {
   letter-spacing: 2px;
   text-transform: uppercase;
   color: #888;
-  font-family: 'Outfit', sans-serif;
   margin-bottom: 8px;
 }
 
@@ -167,7 +168,37 @@ body {
   border-bottom-color: #1a1410;
 }
 
+/* Form grid - two columns */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 30px;
+  width: 100%;
+}
 
+.form-grid .form-row.full {
+  grid-column: 1 / -1;
+}
+
+.form-row select {
+  width: 100%;
+  border: none;
+  border-bottom: 1.5px solid #e0d8cc;
+  background: transparent;
+  padding: 12px 0;
+  font-family: 'Instrument Serif', serif;
+  font-size: 18px;
+  color: #1a1410;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.form-row select:focus {
+  border-bottom-color: #1a1410;
+}
+
+/* Login button - larger */
 .login-btn {
   width: 100%;
   background: #1a1410;
@@ -175,11 +206,11 @@ body {
   border: none;
   padding: 16px;
   font-family: 'Outfit', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 3px;
   text-transform: uppercase;
   cursor: pointer;
-  margin-top: 16px;
+  margin-top: 20px;
   transition: background 0.3s;
 }
 
@@ -192,14 +223,87 @@ body {
   cursor: not-allowed;
 }
 
+/* Signup link */
 .signup-link {
-  margin-top: 24px;
+  margin-top: 25px;
   font-size: 13px;
   color: #666;
+  text-align: center;
 }
+
 .signup-link a {
   color: #1a1410;
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.3s;
+}
+
+.signup-link a:hover {
+  color: #c8873a;
+}
+
+/* Logo */
+.login-logo {
+  max-width: 150px;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+/* Responsive - for smaller screens */
+@media (max-width: 1000px) {
+  .split-right {
+    max-width: 600px;
+    min-width: 400px;
+    padding: 30px 40px;
+  }
+  
+  .split-right h1 {
+    font-size: 36px;
+  }
+  
+  .form-grid {
+    gap: 0 20px;
+  }
+}
+
+@media (max-width: 850px) {
+  .split {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .split-left {
+    flex: none;
+    padding: 30px;
+  }
+  
+  .split-right {
+    max-width: 100%;
+    min-width: auto;
+    padding: 40px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  
+  body {
+    overflow: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .split-right {
+    padding: 25px;
+  }
+  
+  .split-right h1 {
+    font-size: 32px;
+  }
+  
+  .form-row input,
+  .form-row select {
+    font-size: 16px;
+    padding: 10px 0;
+  }
 }
