@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page - Receipt Gen</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../CSS/styles.css">
+</head>
+<body>
+
+  <div class="split">
+
+    <!-- left panel bro -->
+    <div class="split-left">
+      <div class="receipt-preview">
+        <div class="rp-title">RECEIPT GENERATOR</div>
+        <div class="rp-row"><span>Wireless Mouse</span><span>$25.99</span></div>
+        <div class="rp-row"><span>Mechanical Keyboard</span><span>$89.50</span></div>
+        <div class="rp-row"><span>Antivirus License</span><span>$49.99</span></div>
+        <div class="rp-row rp-tax"><span>Tax (8%)</span><span>$13.24</span></div>
+        <div class="rp-total"><span>TOTAL</span><span>$178.72</span></div>
+        <div class="rp-thanks">Thank you for your visit!</div>
+      </div>
+      <p class="tagline">Generate · Print · Manage</p>
+    </div>
+
+    <!-- right panel -->
+    <div class="split-right">
+      <p class="logo"><img src="./Assets/logo.png" alt="Login placeholder" class="login-logo" width="200" height="100"/></p>
+      
+    
+
+      <h1>Welcome<br><em>back.</em></h1>
+      <p class="subtitle">Sign in to your account.</p>
+
+      <div id="error-msg" class="error-msg"></div>
+
+      <div class="form-row">
+        <label for="username">Username</label>
+        <input id="username" type="text" placeholder="your.username" autocomplete="username" />
+      </div>
+
+      <div class="form-row">
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+
+      <button class="login-btn" id="login-btn">Sign In</button>
+
+      <p class="signup-link">Don't have an account? <a href="register.html">Register Now</a></p>
+
+  </div>
+
+  <script src="../JS/login.js"></script>
+</body>
+</html>
