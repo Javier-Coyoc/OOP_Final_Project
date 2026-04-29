@@ -1,7 +1,6 @@
 const db = require("../db/dbConnection");
-const bcrypt = require("bcrypt"); // Add this
 
-// User login - FIXED with bcrypt
+// User login
 exports.login = async (req, res) => {
   const { username, password } = req.body;
 
@@ -13,10 +12,9 @@ exports.login = async (req, res) => {
   }
 
   try {
-    // First, find the user by username only
     const result = await db.query(
-      "SELECT * FROM users WHERE username = $1",
-      [username]
+      "SELECT * FROM users WHERE username = $1 AND password_hash = $2",
+      [username, password]
     );
 
     if (result.rows.length === 0) {
@@ -28,44 +26,35 @@ exports.login = async (req, res) => {
 
     const user = result.rows[0];
 
-    // Compare password with bcrypt
-    const isValidPassword = await bcrypt.compare(password, user.password_hash);
-    
-    if (!isValidPassword) {
-      return res.status(401).json({ 
-        success: false,
-        message: "Invalid username or password" 
-      });
-    }
-
     if (!user.is_active) {
       return res.status(403).json({ 
         success: false,
-        message: "Account is disabled. Please contact administrator." 
+        message: "Account is disabled" 
       });
     }
 
     const { password_hash, ...userWithoutPassword } = user;
 
-    res.json({
-      success: true,
-      message: `Welcome, ${user.full_name}!`,
-      token: `token_${user.id}_${Date.now()}`,
-      id: user.id,
-      role: user.role,
-      full_name: user.full_name,
-      user: userWithoutPassword
-    });
+  res.json({
+    success: true,
+    message: `Welcome, ${user.full_name}!`,
+    token: `token_${user.id}_${Date.now()}`,
+    // Add these direct properties for frontend convenience
+    id: user.id,
+    role: user.role,
+    full_name: user.full_name,
+    user: userWithoutPassword
+  });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ 
       success: false,
-      message: "Login failed. Please try again." 
+      message: "Login failed" 
     });
   }
 };
 
-// User registration - FIXED with bcrypt
+// User registration
 exports.registerUser = async (req, res) => {
   const { full_name, username, email, role, password } = req.body;
 
@@ -84,15 +73,7 @@ exports.registerUser = async (req, res) => {
     });
   }
 
-  if (password.length < 4) {
-    return res.status(400).json({
-      success: false,
-      message: "Password must be at least 4 characters"
-    });
-  }
-
   try {
-    // Check if user exists
     const userExists = await db.query(
       "SELECT id FROM users WHERE username = $1 OR email = $2",
       [username, email]
@@ -105,15 +86,11 @@ exports.registerUser = async (req, res) => {
       });
     }
     
-    // Hash the password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    
     const result = await db.query(
       `INSERT INTO users (username, password_hash, role, full_name, email, is_active) 
        VALUES ($1, $2, $3, $4, $5, $6) 
        RETURNING id, username, role, full_name, email, is_active, created_at`,
-      [username, hashedPassword, role, full_name, email, true]
+      [username, password, role, full_name, email, true]
     );
 
     res.status(201).json({ 
@@ -125,16 +102,13 @@ exports.registerUser = async (req, res) => {
     console.error('Registration error:', err);
     res.status(500).json({ 
       success: false,
-      message: "Registration failed. Please try again." 
+      message: "Registration failed" 
     });
   }
 };
 
-// Get all users - ADD ROLE CHECK
+// Get all users
 exports.getUsers = async (req, res) => {
-  // TODO: Add authentication middleware to get user role from token
-  // For now, this is open but should be protected
-  
   try {
     const result = await db.query(
       "SELECT id, username, role, full_name, email, is_active, created_at FROM users ORDER BY id"
@@ -153,7 +127,7 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-// Toggle user status - ADD ROLE CHECK
+// Toggle user status
 exports.toggleUserStatus = async (req, res) => {
   const userId = req.params.id;
   
