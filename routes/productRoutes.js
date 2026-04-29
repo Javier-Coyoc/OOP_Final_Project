@@ -1,11 +1,38 @@
-const express    = require("express");
-const router     = express.Router();
-const controller = require("../controllers/productController");
+const express       = require("express");
+const router        = express.Router();
+const controller    = require("../controllers/productController");
+const { authenticate, requireRole } = require("../Controllers/authMiddleware");
 
-router.get("/",       controller.getProducts);    // GET  /products
-router.get("/:id",    controller.getProductById); // GET  /products/:id
-router.post("/",      controller.addProduct);     // POST /products
-router.put("/:id",    controller.updateProduct);  // PUT  /products/:id
-router.delete("/:id", controller.deleteProduct);  // DELETE /products/:id
+// Read access - All authenticated users (Admin, Manager, Cashier)
+router.get("/",
+  authenticate,
+  requireRole("Admin", "Manager", "Cashier"),
+  controller.getProducts
+);
+
+router.get("/:id",
+  authenticate,
+  requireRole("Admin", "Manager", "Cashier"),
+  controller.getProductById
+);
+
+// Write access - Admin and Manager only
+router.post("/",
+  authenticate,
+  requireRole("Admin", "Manager"),
+  controller.addProduct
+);
+
+router.put("/:id",
+  authenticate,
+  requireRole("Admin", "Manager"),
+  controller.updateProduct
+);
+
+router.delete("/:id",
+  authenticate,
+  requireRole("Admin", "Manager"),
+  controller.deleteProduct
+);
 
 module.exports = router;
