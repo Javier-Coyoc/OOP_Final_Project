@@ -415,7 +415,16 @@
   <!-- ── TOAST ── -->
   <div class="toast" id="toast"></div>
 
-  <script src="../JS/dashboard.js"></script>
-  <script src="../JS/pos.js"></script>
+  <!-- RBAC auth guard: redirect unauthenticated users to login -->
+  <script>
+    (function() {
+      var token = localStorage.getItem('token');
+      var role  = localStorage.getItem('role');
+      if (!token || !role) {
+        window.location.replace('login.html');
+      }
+    })();
+  </script>
+<script src="../JS/dashboard.js?v=2"></script>
 </body>
 </html>

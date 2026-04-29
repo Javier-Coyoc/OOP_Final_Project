@@ -84,6 +84,20 @@ window.nav = {
   current: 'dashboard',
 
   switchTo(viewId) {
+    // RBAC check: block navigation to views the current role can't access
+    const viewPermission = {
+      dashboard: 'dashboard',
+      history:   'history',
+      staff:     'staff',
+      pos:       'pos',
+      products:  'products',
+    };
+    const perm = viewPermission[viewId];
+    if (perm && !can(perm)) {
+      toast.show('You do not have permission to view this section.', 'error');
+      return;
+    }
+
     // hide all views
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -119,9 +133,42 @@ document.querySelectorAll('.nav-item[data-view]').forEach(item => {
 //  USER DISPLAY  (reads from localStorage set by login.js)
 // ─────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────
+//  RBAC HELPERS
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Role permission matrix:
+ *
+ *  Feature / View         Cashier   Manager   Admin
+ *  ─────────────────────────────────────────────────
+ *  POS (new receipt)        ✓         ✓         ✓
+ *  Products catalogue       ✓         ✓         ✓
+ *  Receipt history          ✗         ✓         ✓
+ *  Staff management         ✗         ✓ (view)  ✓ (view + toggle)
+ *  Dashboard overview       ✗         ✓         ✓
+ *  Toggle user status       ✗         ✗         ✓
+ */
+const ROLE_PERMISSIONS = {
+  Admin:   { dashboard: true, history: true, staff: true, pos: true, products: true, toggleUsers: true  },
+  Manager: { dashboard: true, history: true, staff: true, pos: true, products: true, toggleUsers: false },
+  Cashier: { dashboard: false,history: false,staff: false,pos: true, products: true, toggleUsers: false },
+};
+
+function can(permission) {
+  const role = localStorage.getItem('role') || 'Cashier';
+  return !!(ROLE_PERMISSIONS[role] && ROLE_PERMISSIONS[role][permission]);
+}
+
 function initUser() {
   const name = localStorage.getItem('full_name') || 'User';
   const role = localStorage.getItem('role')      || 'Cashier';
+
+  // Guard: if no token/role in storage, kick to login
+  if (!localStorage.getItem('token') || !role) {
+    window.location.replace('login.html');
+    return;
+  }
 
   document.getElementById('sb-user-name').textContent = name;
   document.getElementById('sb-user-role').textContent = role;
@@ -135,14 +182,37 @@ function initUser() {
     .toUpperCase();
   document.getElementById('sb-avatar').textContent = initials;
 
-  // Show staff nav + qa cell for Admin / Manager
-  if (role === 'Admin' || role === 'Manager') {
-    document.querySelectorAll('.nav-manage-section, .nav-staff-item, .qa-staff-cell')
-      .forEach(el => el.style.removeProperty('display'));
-    // hide the print placeholder that occupies that spot
-    const printCell = document.querySelector('.qa-print-cell');
-    if (printCell) printCell.style.display = 'none';
+  // ── Nav visibility ──────────────────────────────────────────
+  // History nav item
+  const navHistory = document.querySelector('.nav-item[data-view="history"]');
+  if (navHistory) navHistory.style.display = can('history') ? '' : 'none';
+
+  // Staff section + nav item
+  const navManageSection = document.querySelector('.nav-manage-section');
+  const navStaffItem     = document.querySelector('.nav-staff-item');
+  if (navManageSection) navManageSection.style.display = can('staff') ? '' : 'none';
+  if (navStaffItem)     navStaffItem.style.display     = can('staff') ? '' : 'none';
+
+  // Dashboard quick-access staff cell
+  const qaStaffCell = document.querySelector('.qa-staff-cell');
+  const qaPrintCell = document.querySelector('.qa-print-cell');
+  if (qaStaffCell) qaStaffCell.style.display = can('staff') ? '' : 'none';
+  if (qaPrintCell) qaPrintCell.style.display = can('staff') ? 'none' : '';
+
+  // ── Default view by role ─────────────────────────────────────
+  // Cashiers don't have access to the overview dashboard — send them straight to POS
+  if (!can('dashboard')) {
+    // Queue after init so nav listeners are attached
+    setTimeout(() => nav.switchTo('pos'), 0);
+
+    // Also hide the dashboard nav item so they can't navigate back
+    const navDash = document.querySelector('.nav-item[data-view="dashboard"]');
+    if (navDash) navDash.style.display = 'none';
   }
+
+  // ── Admin-only: show toggle buttons in staff view ────────────
+  // The staff.render() function checks window.currentUserCanToggle at render time
+  window.currentUserCanToggle = can('toggleUsers');
 }
 
 // Logout
@@ -468,9 +538,19 @@ window.staff = {
           ? '<span class="badge b-green">Active</span>'
           : '<span class="badge b-gray">Inactive</span>';
 
+        // Admin-only: toggle active/inactive button
+        const toggleBtn = window.currentUserCanToggle
+          ? `<button
+               class="dash-btn"
+               style="margin-top:8px;padding:5px 10px;font-size:9px;letter-spacing:1px;width:100%;opacity:0.85"
+               onclick="staff.toggleStatus(${u.id}, this)">
+               ${u.is_active ? 'Deactivate' : 'Activate'}
+             </button>`
+          : '';
+
         return `<div class="staff-card">
           <div class="staff-avatar" style="background:${color}">${initials}</div>
-          <div style="min-width:0">
+          <div style="min-width:0;width:100%">
             <div class="staff-name">${u.full_name || u.username}</div>
             <div class="staff-username">@${u.username}</div>
             <div class="staff-email">${u.email || '—'}</div>
@@ -478,12 +558,35 @@ window.staff = {
               <span class="badge ${roleBadge}">${u.role}</span>
               ${statusBadge}
             </div>
+            ${toggleBtn}
           </div>
         </div>`;
       }).join('');
 
     } catch (err) {
       console.error('Staff render error:', err);
+    }
+  },
+
+  async toggleStatus(userId, btn) {
+    if (!window.currentUserCanToggle) {
+      toast.show('Only Admins can change user status.', 'error');
+      return;
+    }
+    const prev = btn.textContent.trim();
+    btn.disabled = true;
+    btn.textContent = '...';
+    try {
+      await apiFetch(`/auth/${userId}/toggle`, { method: 'PUT' });
+      // Flip in local state so re-render reflects the change
+      const u = appState.users.find(u => u.id === userId);
+      if (u) u.is_active = !u.is_active;
+      this.render();
+      toast.show('User status updated.', 'success');
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = prev;
+      toast.show('Failed to update status. ' + (err.message || ''), 'error');
     }
   },
 };

@@ -39,19 +39,8 @@ async function handleLogin() {
       localStorage.setItem('full_name', data.full_name);
       localStorage.setItem('user_id',   data.id);
  
-      // Route by role
-      switch (data.role) {
-        case 'Admin':
-          window.location.href = '/admin/dashboard';
-          break;
-        case 'Manager':
-          window.location.href = '/manager/dashboard';
-          break;
-        case 'Cashier':
-        default:
-          window.location.href = '/pos';
-          break;
-      }
+      // All roles land on the same dashboard; RBAC controls what they see there
+      window.location.href = 'index.html';
     } else {
       // Server returned an error (inactive account, wrong password, etc.)
       errorMsg.textContent = data.message || 'Invalid credentials. Try again.';
