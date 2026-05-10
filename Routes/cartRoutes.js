@@ -1,7 +1,7 @@
 const express       = require("express");
 const router        = express.Router();
 const controller    = require("../controllers/cartController");
-const { authenticate, requireRole } = require("../Controllers/authMiddleware");
+const { authenticate, requireRole } = require("../controllers/authMiddleware");
 
 // Cart access - Cashiers can manage their own cart, Admins/Managers can view all
 router.get("/:cashier_id",

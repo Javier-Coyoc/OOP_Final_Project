@@ -87,12 +87,39 @@ exports.createReceipt = async (req, res) => {
 exports.getReceipts = async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT r.*, u.full_name AS user_name
+      `SELECT 
+        r.*, 
+        u.full_name AS user_name,
+        p.amount AS payment_amount,
+        p.type AS payment_type,
+        p.card_last4,
+        p.card_type,
+        p.change_due
        FROM receipts r
        LEFT JOIN users u ON r.user_id = u.id
+       LEFT JOIN payments p ON r.id = p.receipt_id
        ORDER BY r.timestamp DESC`
     );
-    res.json(result.rows);
+    
+    // Transform to match frontend expected format
+    const receipts = result.rows.map(row => ({
+      id: row.id,
+      timestamp: row.timestamp,
+      promo_code: row.promo_code,
+      tax_rate: row.tax_rate,
+      discount_percent: row.discount_percent,
+      user_id: row.user_id,
+      user_name: row.user_name,
+      payment: row.payment_amount ? {
+        amount: row.payment_amount,
+        type: row.payment_type,
+        card_last4: row.card_last4,
+        card_type: row.card_type,
+        change_due: row.change_due
+      } : null
+    }));
+    
+    res.json(receipts);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

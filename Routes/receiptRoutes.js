@@ -1,7 +1,7 @@
 const express       = require("express");
 const router        = express.Router();
 const controller    = require("../controllers/receiptController");
-const { authenticate, requireRole } = require("../Controllers/authMiddleware");
+const { authenticate, requireRole } = require("../controllers/authMiddleware");
 
 // Create receipt - Cashiers can create receipts
 router.post("/",

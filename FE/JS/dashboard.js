@@ -117,10 +117,10 @@ window.nav = {
     this.current = viewId;
 
     // lazy-render each view
-    if (viewId === 'products') products.render();
-    if (viewId === 'history')  history.render();
-    if (viewId === 'staff')    staff.render();
-    if (viewId === 'pos')      pos.renderCart();
+    if (viewId === 'products' && window.products) products.render();
+    if (viewId === 'history' && window.receiptHistory) receiptHistory.render();
+    if (viewId === 'staff' && window.staff) staff.render();
+    if (viewId === 'pos' && window.pos) pos.renderCart();
   },
 };
 
@@ -152,7 +152,7 @@ document.querySelectorAll('.nav-item[data-view]').forEach(item => {
 const ROLE_PERMISSIONS = {
   Admin:   { dashboard: true, history: true, staff: true, pos: true, products: true, toggleUsers: true  },
   Manager: { dashboard: true, history: true, staff: true, pos: true, products: true, toggleUsers: false },
-  Cashier: { dashboard: false,history: false,staff: false,pos: true, products: true, toggleUsers: false },
+  Cashier: { dashboard: false, history: false, staff: false, pos: true, products: true, toggleUsers: false },
 };
 
 function can(permission) {
@@ -252,7 +252,10 @@ function initClock() {
 async function loadData() {
   // Products
   try {
-    appState.products = await apiFetch('/products');
+    const productData = await apiFetch('/products');
+    // Handle both response formats
+    appState.products = productData.products || productData;
+    console.log('Products loaded:', appState.products.length);
   } catch (err) {
     console.warn('Could not load products – using mock data.', err);
     appState.products = MOCK_PRODUCTS;
@@ -261,6 +264,7 @@ async function loadData() {
   // Receipts
   try {
     appState.receipts = await apiFetch('/receipts');
+    console.log('Receipts loaded:', appState.receipts.length);
   } catch (err) {
     console.warn('Could not load receipts – using mock data.', err);
     appState.receipts = MOCK_RECEIPTS;
@@ -270,7 +274,9 @@ async function loadData() {
   const role = localStorage.getItem('role');
   if (role === 'Admin' || role === 'Manager') {
     try {
-      appState.users = await apiFetch('/users');
+      const userData = await apiFetch('/auth');
+      appState.users = userData.users || userData;
+      console.log('Users loaded:', appState.users.length);
     } catch (err) {
       console.warn('Could not load users – using mock data.', err);
       appState.users = MOCK_USERS;
@@ -318,6 +324,10 @@ const MOCK_USERS = [
 function renderDashboard() {
   try {
     const { receipts, products } = appState;
+
+    if (!receipts || receipts.length === 0) {
+      console.log('No receipts to display');
+    }
 
     // Stats
     const totalRevenue = receipts.reduce((s, r) => s + parseFloat(r.payment?.amount || 0), 0);
@@ -421,7 +431,7 @@ window.products = {
 
   _renderGrid(list) {
     const grid   = document.getElementById('products-grid');
-    const cartIds = appState.cart.map(i => i.product.id);
+    const cartIds = (window.pos && window.pos.cart) ? window.pos.cart.map(i => i.product.id) : [];
 
     if (!list.length) {
       grid.innerHTML = '<div class="tbl-loading" style="grid-column:1/-1">No products match.</div>';
@@ -445,10 +455,10 @@ window.products = {
 };
 
 // ─────────────────────────────────────────────────────────────
-//  HISTORY VIEW
+//  HISTORY VIEW (renamed to receiptHistory to avoid browser conflict)
 // ─────────────────────────────────────────────────────────────
 
-window.history = {
+window.receiptHistory = {
   render() {
     this._renderTable([...appState.receipts].reverse());
   },
@@ -691,6 +701,10 @@ window.modal = {
     initClock();
     await loadData();
     renderDashboard();
+    // Force products render if on products view
+    if (window.products) {
+      window.products.render();
+    }
   } catch (err) {
     console.error('Init error:', err);
     toast.show('Failed to load data – check console.', 'error');

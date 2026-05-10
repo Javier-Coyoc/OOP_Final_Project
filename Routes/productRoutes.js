@@ -1,7 +1,7 @@
 const express       = require("express");
 const router        = express.Router();
 const controller    = require("../controllers/productController");
-const { authenticate, requireRole } = require("../Controllers/authMiddleware");
+const { authenticate, requireRole } = require("../controllers/authMiddleware");
 
 // Read access - All authenticated users (Admin, Manager, Cashier)
 router.get("/",

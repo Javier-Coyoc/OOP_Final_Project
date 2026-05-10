@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard – Receipt Gen</title>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../CSS/styles.css">
-  <link rel="stylesheet" href="../CSS/dashboard.css">
+<link rel="stylesheet" href="../CSS/styles.css">
+<link rel="stylesheet" href="../CSS/dashboard.css">
+
 </head>
 <body class="dashboard-body">
 
@@ -425,6 +426,15 @@
       }
     })();
   </script>
-<script src="../JS/dashboard.js?v=2"></script>
+
+<script src="../JS/dashboard.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const posScript = document.createElement('script');
+    posScript.src = '../JS/pos.js';
+    document.body.appendChild(posScript);
+  });
+</script>
+
 </body>
 </html>

@@ -1,0 +1,6 @@
+🚀 Server running on port 3000
+📍 Login: http://localhost:3000/login.html
+📍 Dashboard: http://localhost:3000/
+✅ Connected to "receipt" database
+Attempting login for: admin_user
+Attempting login for: cashier_01
