@@ -451,5 +451,3 @@ OOP_Final_Project/
 ```
 
 ---
-
-*Document generated for OOP Final Project - Receipt Generator System*
