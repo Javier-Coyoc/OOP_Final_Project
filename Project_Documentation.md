@@ -24,19 +24,45 @@ The system provides a complete solution for retail environments where cashiers n
 ## 2. System Overview
 
 ### Architecture
-The system follows a **three-tier architecture**:
+The system follows a **four-tier architecture**:
+
+
+┌─────────────────────────────────────────────────┐
+│          1. FRONTEND LAYER (FE/)                │
+│  HTML/CSS/JS - Login, Dashboard, POS Interface  │
+│        Client-side logic & API calls            │
+└─────────────────────┬───────────────────────────┘
+                      │ HTTP/REST
+┌─────────────────────▼───────────────────────────┐
+│        2. CONTROLLER & ROUTES LAYER             │
+│     Express.js - API Endpoints, Routing         │
+│     Middleware (Auth, CORS), Request Handling   │
+└─────────────────────┬───────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────┐
+│          3. BUSINESS LAYER (Classes/)           │
+│    TypeScript OOP Classes - Product, Cart,      │
+│    Payment, Receipt, User - Business Logic      │
+└─────────────────────┬───────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────┐
+│           4. DATA LAYER (PostgreSQL)            │
+│    Relational Database - Tables: users,         │
+│    products, receipts, receipt_items, payments  │
+│    ENUM types for payment validation            │
+└─────────────────────────────────────────────────┘
 
 1. **Frontend Layer (FE/)**
    - HTML pages for login, registration, dashboard, and POS interface
    - CSS styling for responsive design
    - JavaScript for client-side logic and API communication
 
-2. **Backend Layer (Node.js/Express)**
+2. **Controllers and Routes Layer (Node.js/Express)**
    - Express.js server handling HTTP requests
    - RESTful API endpoints for products, cart, receipts, and users
    - Middleware for authentication and CORS handling
 
-3. **Data Layer (PostgreSQL)**
+3. **Backend Layer (PostgreSQL)**
    - Relational database with normalized schema
    - Tables for users, products, receipts, receipt items, and payments
    - ENUM types for payment method validation
@@ -276,29 +302,6 @@ users ─────┬────────── receipts ───── 
 
 ---
 
-## 6. Individual Roles & Contributions
-
-### Team Member Responsibilities
-
-| Role | Responsibilities |
-|------|------------------|
-| **Frontend Developer** | HTML/CSS/JS implementation, UI/UX design, responsive layouts |
-| **Backend Developer** | Express.js server, API endpoints, middleware, routing |
-| **Database Designer** | Schema design, SQL queries, data relationships, indexes |
-| **OOP Architect** | Class design, inheritance hierarchy, polymorphism implementation |
-| **Integration Specialist** | Frontend-backend integration, testing, deployment |
-
-*(Note: Customize this section based on your actual team contributions)*
-
-### My Specific Contributions
-*(Fill in your personal contributions)*
-- Designed and implemented the abstract class hierarchy (ProductDef, PaymentDef, etc.)
-- Developed the Cart class with promotional code and tax calculation logic
-- Created the Receipt generation system with formatted console output
-- Implemented the database schema with proper foreign key relationships
-- Built the Express.js backend with RESTful API endpoints
-
----
 
 ## 7. Challenges & Solutions
 
