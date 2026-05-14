@@ -23,13 +23,14 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create products table
+-- Create products table with image_url column
 CREATE TABLE products (
     id SERIAL PRIMARY KEY, 
     sku VARCHAR(50) UNIQUE NOT NULL,
     name VARCHAR(100) NOT NULL,
     category VARCHAR(50),
-    price DECIMAL(10, 2) NOT NULL
+    price DECIMAL(10, 2) NOT NULL,
+    image_url VARCHAR(255)
 );
 
 -- Create receipts table
@@ -66,7 +67,7 @@ CREATE TABLE payments (
     )
 );
 
--- Insert sample data with PLAIN TEXT PASSWORDS (no bcrypt/argon2)
+-- Insert sample users with plain text passwords (for testing only)
 INSERT INTO users (username, password_hash, role, full_name, email, is_active) VALUES
 ('admin_user', 'admin123', 'Admin', 'Alice Johnson', 'alice@system.com', true),
 ('cashier_01', 'cashier123', 'Cashier', 'Bob Smith', 'bob@system.com', true),
@@ -74,13 +75,13 @@ INSERT INTO users (username, password_hash, role, full_name, email, is_active) V
 ('manager_ken', 'manager123', 'Manager', 'Ken Thompson', 'ken@system.com', true),
 ('dev_tester', 'test123', 'Admin', 'Dana White', 'dana@system.com', false);
 
--- Insert products
-INSERT INTO products (sku, name, category, price) VALUES
-('ELEC-001', 'Wireless Mouse', 'Electronics', 25.99),
-('ELEC-002', 'Mechanical Keyboard', 'Electronics', 89.50),
-('OFFC-010', 'Ergonomic Chair', 'Furniture', 199.00),
-('OFFC-011', 'Standing Desk', 'Furniture', 350.00),
-('SOFT-999', 'Antivirus License', 'Software', 49.99);
+-- Insert products with image URLs
+INSERT INTO products (sku, name, category, price, image_url) VALUES
+('ELEC-001', 'Wireless Mouse', 'Electronics', 25.99, '/HTML/Assets/products/wireless-mouse.jpeg'),
+('ELEC-002', 'Mechanical Keyboard', 'Electronics', 89.50, '/HTML/Assets/products/mechanical-keyboard.jpg'),
+('OFFC-010', 'Ergonomic Chair', 'Furniture', 199.00, '/HTML/Assets/products/ergonomic-chair.jpg'),
+('OFFC-011', 'Standing Desk', 'Furniture', 350.00, '/HTML/Assets/products/standing-desk.jpg'),
+('SOFT-999', 'Antivirus License', 'Software', 49.99, '/HTML/Assets/products/antivirus-license.jpg');
 
 -- Insert receipts
 INSERT INTO receipts (user_id, promo_code, tax_rate, discount_percent) VALUES
@@ -106,7 +107,7 @@ INSERT INTO payments (receipt_id, amount, type, card_last4, card_type, change_du
 (4, 378.00, 'CASH', NULL, NULL, 22.00),
 (5, 175.00, 'CARD', '1111', 'Amex', NULL);
 
--- Create indexes
+-- Create indexes for better performance
 CREATE INDEX idx_receipts_user_id ON receipts(user_id);
 CREATE INDEX idx_receipts_timestamp ON receipts(timestamp);
 CREATE INDEX idx_receipt_items_product_id ON receipt_items(product_id);
@@ -123,16 +124,8 @@ SELECT 'Receipt items count: ' || COUNT(*)::TEXT FROM receipt_items
 UNION ALL
 SELECT 'Payments count: ' || COUNT(*)::TEXT FROM payments;
 
+-- Show all users
+SELECT id, username, password_hash, role, full_name, is_active FROM users;
 
--- Update all users to use plain text passwords
-UPDATE users SET password_hash = 'admin123' WHERE username = 'admin_user';
-UPDATE users SET password_hash = 'cashier123' WHERE username = 'cashier_01';
-UPDATE users SET password_hash = 'cashier123' WHERE username = 'cashier_02';
-UPDATE users SET password_hash = 'manager123' WHERE username = 'manager_ken';
-UPDATE users SET password_hash = 'test123' WHERE username = 'dev_tester';
-
--- Verify the updates
-SELECT id, username, password_hash, role, full_name FROM users;
-
-
-SELECT * FROM users;
+-- Show all products with images
+SELECT id, sku, name, category, price, image_url FROM products;

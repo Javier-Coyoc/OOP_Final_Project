@@ -429,27 +429,31 @@ window.products = {
       + cats.map(c => `<option value="${c}">${c}</option>`).join('');
   },
 
-  _renderGrid(list) {
-    const grid   = document.getElementById('products-grid');
+_renderGrid(list) {
+    const grid = document.getElementById('products-grid');
     const cartIds = (window.pos && window.pos.cart) ? window.pos.cart.map(i => i.product.id) : [];
 
     if (!list.length) {
-      grid.innerHTML = '<div class="tbl-loading" style="grid-column:1/-1">No products match.</div>';
-      return;
+        grid.innerHTML = '<div class="tbl-loading" style="grid-column:1/-1">No products match.</div>';
+        return;
     }
 
     grid.innerHTML = list.map(p => {
-      const inCart = cartIds.includes(p.id);
-      return `<div class="product-card ${inCart ? 'in-cart' : ''}">
-        <div class="prod-sku">${p.sku}</div>
-        <div class="prod-name">${p.name}</div>
-        <div class="prod-cat">${p.category || '—'}</div>
-        <div class="prod-price">$${parseFloat(p.price).toFixed(2)}</div>
-        <button class="prod-btn ${inCart ? 'remove' : ''}"
-          onclick="pos.toggleProduct(${p.id})">
-          ${inCart ? '✕ Remove' : '+ Add to Cart'}
-        </button>
-      </div>`;
+        const inCart = cartIds.includes(p.id);
+        // Use the image_url from database
+        const imageUrl = p.image_url || 'https://picsum.photos/id/1/200/200';
+        
+        return `<div class="product-card ${inCart ? 'in-cart' : ''}">
+            <img src="${imageUrl}" alt="${p.name}" class="product-image" loading="lazy" onerror="this.src='https://picsum.photos/id/1/200/200'">
+            <div class="prod-sku">${p.sku}</div>
+            <div class="prod-name">${p.name}</div>
+            <div class="prod-cat">${p.category || '—'}</div>
+            <div class="prod-price">$${parseFloat(p.price).toFixed(2)}</div>
+            <button class="prod-btn ${inCart ? 'remove' : ''}"
+                onclick="pos.toggleProduct(${p.id})">
+                ${inCart ? '✕ Remove' : '+ Add to Cart'}
+            </button>
+        </div>`;
     }).join('');
   },
 };

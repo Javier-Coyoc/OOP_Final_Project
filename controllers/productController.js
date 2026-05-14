@@ -3,12 +3,10 @@ const db = require("../db/dbConnection");
 
 exports.getProducts = async (req, res) => {
   try {
-    const result = await db.query("SELECT id, sku, name, category, price FROM products ORDER BY id");
-    res.json({
-      success: true,
-      count: result.rows.length,
-      products: result.rows
-    });
+    const result = await db.query(
+      "SELECT id, sku, name, category, price, image_url FROM products ORDER BY id"
+    );
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
